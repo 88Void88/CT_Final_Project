@@ -1,4 +1,4 @@
-input = input()
+input = input("Enter string to be evaluated: ")
 
 grammar = {
     "S'": ["S"],
@@ -62,28 +62,25 @@ grammar_reverse = {
 }
 
 # ex input: c(3)
-layers = [[]]
-divisions = [[]]
+layers = []
+divisions = []
 # create input divisions
 for i in range(0, len(input)):
     divisions.append([])
     for x in range(0, len(input) - i):
-        segment = ""
-        curr_index = x
-        for i in range(0, i + 1):
-            segment = segment + input[curr_index]
-            curr_index = curr_index + 1
+        segment = input[x:x+i+1]
         divisions[i].append(segment)
 
-divisions.pop()
-# print(divisions)
+print(divisions)
 
 count = 0
 for i in divisions:
+    count_col = 0
     layers.append([])
     for j in i:
+        layers[count].append([])
         if len(j) == 1:
-            layers[count].append(grammar_reverse.get(j))
+            layers[count][count_col].append(grammar_reverse.get(j))
         else:
             for x in range(1, len(j)):
                 segmentA = j[:x]
@@ -92,10 +89,24 @@ for i in divisions:
                 rowB = len(segmentB) - 1
                 ruleA = layers[rowA][divisions[rowA].index(segmentA)]
                 ruleB = layers[rowB][divisions[rowB].index(segmentB)]
-                if ruleA is None and ruleB is None:
-                    layers[count].append(None)
-                else:
-                    layers[count].append(grammar_reverse.get(ruleA + ruleB))
+                for a in ruleA:
+                    for b in ruleB:
+                        if type(a) is str and type(b) is str:
+                            try:
+                                layers[count][count_col].remove(None)
+                            except ValueError:
+                                pass
+                            layers[count][count_col].append(grammar_reverse.get(a + b))
+                        else:
+                            if len(layers[count][count_col]) == 0:
+                                layers[count][count_col].append(None)
+        count_col += 1
     count += 1
 
-print(layers)
+layers.reverse()
+for layer in layers:
+    print(layer)
+if grammar_reverse.get(layers[0][0][0]) == "S'":
+    print("Syntax is correct")
+else:
+    print("Syntax is incorrect")
