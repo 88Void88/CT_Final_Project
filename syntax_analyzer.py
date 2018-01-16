@@ -1,64 +1,72 @@
-input = input("Enter string: ")
-
+# ABCDEFGHIJKLPQRVYZ
+sentence = input("insert string: ")
 grammar = {
     "S'": ["S"],
-    "S": ["GA", "ZA", "LA", "HB"],
-    "A": ["PC"],
-    "B": ["PE"],
-    "C": ["YD", "VD"],
-    "D": ["QE"],
-    "E": ["YR", "VR"],
-    "Y": ["VY", "VV"],
-    "H": ["c"],
-    "G": ["g"],
-    "Z": ["r"],
+    "S": ["RA", "LA", "QB", "GC"],
+    "A": ["ZH"],
+    "B": ["ZJ"],
+    "C": ["ZM"],
+    "H": ["DI"],
+    "I": ["WJ"],
+    "J": ["DY"],
+    "M": ["EN"],
+    "N": ["WO"],
+    "O": ["EY"],
+    "E": [0, "VD", "XD", 1, 2, 3, 4, 5, 6, 7, 8, 9],
+    "D": [0, "XD", 1, 2, 3, 4, 5, 6, 7, 8, 9],
+    "X": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+    "Z": ["("],
+    "Y": [")"],
+    "W": [","],
+    "V": ["-"],
+    "R": ["r"],
     "L": ["l"],
-    "P": ["("],
-    "R": [")"],
-    "Q": [","],
-    "V": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+    "Q": ["c"],
+    "G": ["g"]
 }
 
 grammar_reverse = {
-    "S": "S'",
+    "S": ["S'"],
     # goto
-    "GA": "S",
+    "GC": ["S"],
     # rectangle
-    "ZA": "S",
+    "RA": ["S"],
     # line
-    "LA": "S",
+    "LA": ["S"],
     # circle
-    "HB": "S",
-    # 2 params
-    "PC": "A",
-    # 1 params
-    "PE": "B",
-    "YD": "C",
-    "VD": "C",
-    "QE": "D",
-    "YR": "E",
-    "VR": "E",
+    "QB": ["S"],
+
+    "ZH": ["A"],
+    "ZJ": ["B"],
+    "ZM": ["C"],
+    "DI": ["H"],
+    "WJ": ["I"],
+    "DY": ["J"],
+    "EN": ["M"],
+    "WO": ["N"],
+    "EY": ["O"],
     # number
-    "VY": "Y",
-    "VV": "Y",
-    "0": "V",
-    "1": "V",
-    "2": "V",
-    "3": "V",
-    "4": "V",
-    "5": "V",
-    "6": "V",
-    "7": "V",
-    "8": "V",
-    "9": "V",
+    "VD": ["E"],
+    "XD": ["E", "D"],
+    "0": ["E", "D", "X"],
+    "1": ["E", "D", "X"],
+    "2": ["E", "D", "X"],
+    "3": ["E", "D", "X"],
+    "4": ["E", "D", "X"],
+    "5": ["E", "D", "X"],
+    "6": ["E", "D", "X"],
+    "7": ["E", "D", "X"],
+    "8": ["E", "D", "X"],
+    "9": ["E", "D", "X"],
     # other terminals
-    "(": "P",
-    ")": "R",
-    ",": "Q",
-    "c": "H",
-    "g": "G",
-    "r": "Z",
-    "l": "L"
+    "(": ["Z"],
+    ")": ["Y"],
+    ",": ["W"],
+    "-": ["V"],
+    "c": ["Q"],
+    "g": ["G"],
+    "r": ["R"],
+    "l": ["L"]
 }
 
 terminals = {
@@ -76,25 +84,24 @@ terminals = {
     "7": "param",
     "8": "param",
     "9": "param",
-    "VY": "param",
-    "VV": "param",
+    "-": "param",
     # other terminals
     "(": "others",
     ")": "others",
     ",": "param"
 }
 
-def analyze_syntax(string):
-    input = string
+def analyze_syntax(sentence):
+    string = sentence
     # ex input: c(3)
     layers = []
     divisions = []
     correct = False
     # create input divisions
-    for i in range(0, len(input)):
+    for i in range(0, len(string)):
         divisions.append([])
-        for x in range(0, len(input) - i):
-            segment = input[x:x+i+1]
+        for x in range(0, len(string) - i):
+            segment = string[x:x+i+1]
             divisions[i].append(segment)
 
     # print(divisions)
@@ -106,7 +113,11 @@ def analyze_syntax(string):
         for j in i:
             layers[count].append([])
             if len(j) == 1:
-                layers[count][count_col].append(grammar_reverse.get(j))
+                if type(grammar_reverse.get(j)) is list:
+                    layers[count][count_col] = layers[count][count_col] + grammar_reverse.get(j)
+                else:
+                    if len(layers[count][count_col]) == 0:
+                        layers[count][count_col].append(None)
             else:
                 for x in range(1, len(j)):
                     segmentA = j[:x]
@@ -122,7 +133,13 @@ def analyze_syntax(string):
                                     layers[count][count_col].remove(None)
                                 except ValueError:
                                     pass
-                                layers[count][count_col].append(grammar_reverse.get(a + b))
+                                if type(grammar_reverse.get(a + b)) is list:
+                                    # print(a+b)
+                                    # print(grammar_reverse.get(a + b))
+                                    layers[count][count_col] = layers[count][count_col] + grammar_reverse.get(a + b)
+                                else:
+                                    if len(layers[count][count_col]) == 0:
+                                        layers[count][count_col].append(None)
                             else:
                                 if len(layers[count][count_col]) == 0:
                                     layers[count][count_col].append(None)
@@ -131,12 +148,17 @@ def analyze_syntax(string):
 
     layers.reverse()
     divisions.reverse()
+
     # for div in divisions:
     #     print(div)
     # for layer in layers:
     #     print(layer)
 
-    if grammar_reverse.get(layers[0][0][0]) == "S'":
+    if type(layers[0][0][0]) is not list and type(layers[0][0][0]) is not str:
+        print("Syntax is incorrect")
+        return [False]
+
+    if "S" in layers[0][0][0]:
         print("Syntax is correct")
         correct = True
     else:
@@ -160,24 +182,29 @@ def analyze_syntax(string):
             history.append(curr)
             curr_row = curr[1]
             curr_col = curr[2]
-            possible = grammar.get(curr[0])
-            # print(curr_row)
-            if curr_row == count - 1:
-                context = terminals.get(str(grammar.get(curr[0])[0]))
-                # print("{} {}".format(str(grammar.get(curr[0])[0]), context))
-                if context is "func":
-                    func = grammar.get(curr[0])
-                elif context is "param":
-                    params.append(original[curr_col])
-                continue
 
+            possible = []
+            for i in curr[0]:
+                possible = possible + grammar.get(i)
+                # print(curr_row)
+                if curr_row == count - 1:
+                    context = terminals.get(str(grammar.get(i)[0]))
+                    # print("{} {}".format(str(grammar.get(curr[0])[0]), context))
+                    if context is "func":
+                        func = grammar.get(i)
+                    elif context is "param":
+                        params.append(original[curr_col])
+                        continue
             for a in range(1, count - curr_row):
                 x1 = curr_col + a
                 y1 = curr_row + a
                 x2 = curr_col
                 y2 = count - a
+
+                #comment
                 # print("{},{}".format(curr_col, curr_row))
                 # print("{},{}|{},{}".format(x1, y1, x2, y2))
+
                 content1 = layers[y1][x1]
                 content2 = layers[y2][x2]
                 found = False
@@ -199,8 +226,10 @@ def analyze_syntax(string):
                 if found:
                     break
     return [True, func, params]
+
+    # comment
     # print(history)
     # print(func)
     # print(params)
 
-print(analyze_syntax(input))
+print(analyze_syntax(sentence))
